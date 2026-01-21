@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>QUIZ DE BANDERAS</title>
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-image: url("https://wallpapers.com/images/hd/high-resolution-3d-aerial-world-map-with-buildings-lf09gl6110je9e91.jpg");
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+/* Contenedores */
+.quiz, #difficulty-selection {
+    background: rgba(255,255,255,0.95);
+    padding: 25px;
+    width: 380px;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* Imagen de bandera */
+img {
+    width: 260px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    margin: 15px 0;
+}
+
+/* Botones generales */
+button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    font-size: 17px;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+button:hover {
+    transform: scale(1.05);
+}
+
+/* Botones de dificultad con colores distintos */
+.difficulty-btn.facil {
+    background-color: #ffc107;
+    color: #212529;
+}
+.difficulty-btn.facil:hover {
+    background-color: #ffc107;
+}
+
+.difficulty-btn.normal {
+    background-color: #FF0000;
+    color: white;
+}
+.difficulty-btn.normal:hover {
+    background-color: #FF0000;
+}
+
+.difficulty-btn.dificil {
+    background-color: #800080;
+    color: #FF0000;
+}
+.difficulty-btn.dificil:hover {
+    background-color: #800080;
+}
+
+/* Score y mensaje */
+.score {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+#message {
+    margin-top: 12px;
+    font-weight: bold;
+    min-height: 24px;
+}
+</style>
+</head>
+<body>
+
+<!-- Menú de dificultad -->
+<div id="difficulty-selection">
+    <h2>SELECCIONA TU DIFICULTAD:</h2>
+    <button class="difficulty-btn facil" onclick="startGame('facil')">NORMAL 😐</button>
+    <button class="difficulty-btn normal" onclick="startGame('normal')">DIFÍCIL 😡</button>
+    <button class="difficulty-btn dificil" onclick="startGame('dificil')">HARDCORE 👿</button>
+</div>
+
+<!-- Contenedor del juego -->
+<div class="quiz" id="quiz-container" style="display:none;">
+    <h2>SELECCIONA LA OPCIÓN CORRECTA:</h2>
+    <img id="flag" alt="Bandera">
+    <div id="options"></div>
+    <div class="score" id="score"></div>
+    <div id="message"></div>
+</div>
+
+<script>
+// --- LISTA COMPLETA DE PAÍSES Y TERRITORIOS ---
+const countries = [
+{n:"Afganistán",c:"AF"},{n:"Albania",c:"AL"},{n:"Argelia",c:"DZ"},
+{n:"Andorra",c:"AD"},{n:"Angola",c:"AO"},{n:"Antigua y Barbuda",c:"AG"},
+{n:"Argentina",c:"AR"},{n:"Armenia",c:"AM"},{n:"Australia",c:"AU"},
+{n:"Austria",c:"AT"},{n:"Azerbaiyán",c:"AZ"},{n:"Bahamas",c:"BS"},
+{n:"Baréin",c:"BH"},{n:"Bangladés",c:"BD"},{n:"Barbados",c:"BB"},
+{n:"Bélgica",c:"BE"},{n:"Belice",c:"BZ"},{n:"Benín",c:"BJ"},
+{n:"Bután",c:"BT"},{n:"Bolivia",c:"BO"},{n:"Bosnia y Herzegovina",c:"BA"},
+{n:"Botsuana",c:"BW"},{n:"Brasil",c:"BR"},{n:"Brunéi",c:"BN"},
+{n:"Bulgaria",c:"BG"},{n:"Burkina Faso",c:"BF"},{n:"Burundi",c:"BI"},
+{n:"Camboya",c:"KH"},{n:"Camerún",c:"CM"},{n:"Canadá",c:"CA"},
+{n:"Cabo Verde",c:"CV"},{n:"Chad",c:"TD"},{n:"Chile",c:"CL"},
+{n:"China",c:"CN"},{n:"Colombia",c:"CO"},{n:"Comoras",c:"KM"},
+{n:"Congo",c:"CG"},{n:"Costa Rica",c:"CR"},{n:"Costa de Marfil",c:"CI"},
+{n:"Croacia",c:"HR"},{n:"Cuba",c:"CU"},{n:"Chipre",c:"CY"},
+{n:"Chequia",c:"CZ"},{n:"Dinamarca",c:"DK"},{n:"Yibuti",c:"DJ"},
+{n:"Dominica",c:"DM"},{n:"República Dominicana",c:"DO"},
+{n:"Ecuador",c:"EC"},{n:"Egipto",c:"EG"},{n:"El Salvador",c:"SV"},
+{n:"Guinea Ecuatorial",c:"GQ"},{n:"Eritrea",c:"ER"},
+{n:"Estonia",c:"EE"},{n:"Esuatini",c:"SZ"},{n:"Etiopía",c:"ET"},
+{n:"Fiyi",c:"FJ"},{n:"Finlandia",c:"FI"},{n:"Francia",c:"FR"},
+{n:"Gabón",c:"GA"},{n:"Gambia",c:"GM"},{n:"Georgia",c:"GE"},
+{n:"Alemania",c:"DE"},{n:"Ghana",c:"GH"},{n:"Grecia",c:"GR"},
+{n:"Granada",c:"GD"},{n:"Guatemala",c:"GT"},{n:"Guinea",c:"GN"},
+{n:"Guinea-Bisáu",c:"GW"},{n:"Guyana",c:"GY"},{n:"Haití",c:"HT"},
+{n:"Honduras",c:"HN"},{n:"Hungría",c:"HU"},{n:"Islandia",c:"IS"},
+{n:"India",c:"IN"},{n:"Indonesia",c:"ID"},{n:"Irán",c:"IR"},
+{n:"Irak",c:"IQ"},{n:"Irlanda",c:"IE"},{n:"Israel",c:"IL"},
+{n:"Italia",c:"IT"},{n:"Jamaica",c:"JM"},{n:"Japón",c:"JP"},
+{n:"Jordania",c:"JO"},{n:"Kazajistán",c:"KZ"},{n:"Kenia",c:"KE"},
+{n:"Kiribati",c:"KI"},{n:"Corea del Norte",c:"KP"},{n:"Corea del Sur",c:"KR"},
+{n:"Kuwait",c:"KW"},{n:"Kirguistán",c:"KG"},{n:"Laos",c:"LA"},
+{n:"Letonia",c:"LV"},{n:"Líbano",c:"LB"},{n:"Lesoto",c:"LS"},
+{n:"Liberia",c:"LR"},{n:"Libia",c:"LY"},{n:"Liechtenstein",c:"LI"},
+{n:"Lituania",c:"LT"},{n:"Luxemburgo",c:"LU"},{n:"Madagascar",c:"MG"},
+{n:"Malasia",c:"MY"},{n:"Maldivas",c:"MV"},{n:"Malí",c:"ML"},
+{n:"Malta",c:"MT"},{n:"Islas Marshall",c:"MH"},{n:"Mauritania",c:"MR"},
+{n:"Mauricio",c:"MU"},{n:"México",c:"MX"},{n:"Micronesia",c:"FM"},
+{n:"Moldavia",c:"MD"},{n:"Mónaco",c:"MC"},{n:"Mongolia",c:"MN"},
+{n:"Montenegro",c:"ME"},{n:"Marruecos",c:"MA"},{n:"Mozambique",c:"MZ"},
+{n:"Myanmar",c:"MM"},{n:"Namibia",c:"NA"},{n:"Nauru",c:"NR"},
+{n:"Nepal",c:"NP"},{n:"Países Bajos",c:"NL"},{n:"Nueva Zelanda",c:"NZ"},
+{n:"Nicaragua",c:"NI"},{n:"Níger",c:"NE"},{n:"Nigeria",c:"NG"},
+{n:"Macedonia del Norte",c:"MK"},{n:"Noruega",c:"NO"},{n:"Omán",c:"OM"},
+{n:"Pakistán",c:"PK"},{n:"Panamá",c:"PA"},{n:"Papúa Nueva Guinea",c:"PG"},
+{n:"Paraguay",c:"PY"},{n:"Perú",c:"PE"},{n:"Filipinas",c:"PH"},
+{n:"Polonia",c:"PL"},{n:"Portugal",c:"PT"},{n:"Qatar",c:"QA"},
+{n:"Rumania",c:"RO"},{n:"Rusia",c:"RU"},{n:"Ruanda",c:"RW"},
+{n:"Arabia Saudita",c:"SA"},{n:"Senegal",c:"SN"},{n:"Serbia",c:"RS"},
+{n:"Seychelles",c:"SC"},{n:"Sierra Leona",c:"SL"},{n:"Singapur",c:"SG"},
+{n:"Eslovaquia",c:"SK"},{n:"Eslovenia",c:"SI"},{n:"Islas Salomón",c:"SB"},
+{n:"Somalia",c:"SO"},{n:"Sudáfrica",c:"ZA"},{n:"Sudán",c:"SD"},
+{n:"Sudán del Sur",c:"SS"},{n:"España",c:"ES"},{n:"Sri Lanka",c:"LK"},
+{n:"Surinam",c:"SR"},{n:"Suecia",c:"SE"},{n:"Suiza",c:"CH"},
+{n:"Siria",c:"SY"},{n:"Tailandia",c:"TH"},{n:"Tanzania",c:"TZ"},
+{n:"Tayikistán",c:"TJ"},{n:"Timor Oriental",c:"TL"},{n:"Togo",c:"TG"},
+{n:"Tonga",c:"TO"},{n:"Trinidad y Tobago",c:"TT"},{n:"Túnez",c:"TN"},
+{n:"Turquía",c:"TR"},{n:"Turkmenistán",c:"TM"},{n:"Tuvalu",c:"TV"},
+{n:"Uganda",c:"UG"},{n:"Ucrania",c:"UA"},{n:"Emiratos Árabes Unidos",c:"AE"},
+{n:"Reino Unido",c:"GB"},{n:"Estados Unidos",c:"US"},{n:"Uruguay",c:"UY"},
+{n:"Uzbekistán",c:"UZ"},{n:"Vaticano",c:"VA"},{n:"Venezuela",c:"VE"},
+{n:"Vietnam",c:"VN"},{n:"Yemen",c:"YE"},{n:"Zambia",c:"ZM"},
+{n:"Zimbabue",c:"ZW"},{n:"Palestina",c:"PS"},{n:"Kosovo",c:"XK"},
+{n:"Taiwán",c:"TW"},{n:"Puerto Rico",c:"PR"},{n:"Hong Kong",c:"HK"},
+{n:"Macao",c:"MO"},{n:"Groenlandia",c:"GL"},{n:"Islas Feroe",c:"FO"},
+{n:"Guam",c:"GU"},{n:"Samoa Americana",c:"AS"},{n:"Islas Caimán",c:"KY"},
+{n:"Islas Vírgenes Británicas",c:"VG"},{n:"Islas Vírgenes de EE. UU.",c:"VI"},
+{n:"Bermudas",c:"BM"},{n:"Gibraltar",c:"GI"},{n:"Curazao",c:"CW"},
+{n:"Aruba",c:"AW"},{n:"Bonaire",c:"BQ"},{n:"San Martín",c:"MF"},
+{n:"San Bartolomé",c:"BL"},{n:"Martinica",c:"MQ"},{n:"Guadalupe",c:"GP"},
+{n:"Reunión",c:"RE"},{n:"Mayotte",c:"YT"},{n:"Nueva Caledonia",c:"NC"},
+{n:"Polinesia Francesa",c:"PF"},{n:"Wallis y Futuna",c:"WF"},
+{n:"Islas Malvinas",c:"FK"},{n:"Antártida",c:"AQ"}
+];
+
+// --- VARIABLES ---
+let remaining = [];
+let score = 0;
+let current = null;
+let activeCountries = [];
+
+// --- FUNCIONES ---
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+function startGame(level){
+    document.getElementById("difficulty-selection").style.display="none";
+    document.getElementById("quiz-container").style.display="block";
+    if(level==="facil") activeCountries = countries.slice(0,50);
+    else if(level==="normal") activeCountries = countries.slice(0,100);
+    else activeCountries = countries.slice();
+    resetGame();
+}
+
+function nextFlag(){
+    if(remaining.length===0){
+        showMessage(`🏆 ¡Ganaste! Adivinaste las ${activeCountries.length} banderas`,"green");
+        setTimeout(resetGame,2500);
+        return;
+    }
+    current=remaining.pop();
+    const img=document.getElementById("flag");
+    img.src=`https://flagcdn.com/w320/${current.c.toLowerCase()}.png`;
+    img.onerror=()=>img.src="https://via.placeholder.com/320x200?text=No+Disponible";
+    const wrong=shuffle(activeCountries.filter(c=>c!==current)).slice(0,3);
+    const options=shuffle([current.n,...wrong.map(c=>c.n)]);
+    const div=document.getElementById("options");div.innerHTML="";
+    options.forEach(o=>{const b=document.createElement("button");b.textContent=o;b.onclick=()=>check(o);div.appendChild(b);});
+    document.getElementById("score").textContent=`Puntaje: ${score} / ${activeCountries.length}`;
+    showMessage("", "");
+}
+
+function check(ans){if(ans===current.n){score++;nextFlag();}else{showMessage(`❌ Incorrecto. Era: ${current.n}`,"red");setTimeout(resetGame,2000);}}
+
+function resetGame(){score=0;remaining=shuffle([...activeCountries]);nextFlag();}
+
+function showMessage(text,color){const msg=document.getElementById("message");msg.textContent=text;msg.style.color=color;}
+</script>
+
+</body>
+</html>
