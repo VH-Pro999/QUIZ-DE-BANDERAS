@@ -29,6 +29,7 @@ body{
     flex-direction:column;
 }
 
+/* ===== BANDERA ===== */
 .flag-box{
     width:100%;
     height:160px;
@@ -37,7 +38,6 @@ body{
     align-items:center;
     justify-content:center;
 }
-
 .flag-box img{
     max-width:100%;
     max-height:100%;
@@ -46,8 +46,8 @@ body{
     box-shadow:0 0 10px rgba(0,0,0,.3);
 }
 
+/* ===== BOTONES ===== */
 #options{flex-grow:1;}
-
 button{
     width:100%;
     padding:10px;
@@ -57,19 +57,19 @@ button{
     border-radius:8px;
     cursor:pointer;
 }
-
 button:hover{transform:scale(1.03);}
 
-.facil{background:#ffc107;color:white;}
-.normal{background:#ff0000;color:white;}
-.dificil{background:#800080;color:black;}
+/* ===== DIFICULTADES ===== */
+.facil{background:#28a745;color:white;}
+.normal{background:#ffc107;color:white;}
+.dificil{background:#ff0000;color:white;}
+.hardcore{background:#800080;color:black;}
 
 .score{
     font-size:16px;
     font-weight:bold;
     margin-top:6px;
 }
-
 #message{
     margin-top:6px;
     font-weight:bold;
@@ -82,10 +82,11 @@ button:hover{transform:scale(1.03);}
 
 <!-- MENÚ -->
 <div id="difficulty-selection">
-    <h2>SELECCIONA TU DIFICULTAD:</h2>
-    <button class="difficulty-btn facil" onclick="startGame('facil')">😐 NORMAL (50 banderas) 😐</button>
-    <button class="difficulty-btn normal" onclick="startGame('normal')">😡 DIFÍCIL (100 banderas) 😡</button>
-    <button class="difficulty-btn dificil" onclick="startGame('dificil')">👿 HARDCORE (211 banderas) 👿</button>
+    <h2>SELECCIONA TU DIFICULTAD</h2>
+    <button class="facil" onclick="startGame('facil')">😄 FÁCIL (25 banderas) 😄</button>
+    <button class="normal" onclick="startGame('normal')">😐 NORMAL (50 banderas) 😐</button>
+    <button class="dificil" onclick="startGame('dificil')">😡 DIFÍCIL (100 banderas) 😡</button>
+    <button class="hardcore" onclick="startGame('hardcore')">👿 HARDCORE (211 banderas) 👿</button>
 </div>
 
 <!-- JUEGO -->
@@ -102,7 +103,7 @@ button:hover{transform:scale(1.03);}
 </div>
 
 <script>
-// ===== LISTA DE PAÍSES (la tuya) =====
+// ===== LISTA DE PAÍSES (puedes dejar la completa aquí) =====
 const countries = [
 {n:"Afganistán",c:"AF"},{n:"Albania",c:"AL"},{n:"Argelia",c:"DZ"},
 {n:"Andorra",c:"AD"},{n:"Angola",c:"AO"},{n:"Antigua y Barbuda",c:"AG"},
@@ -178,10 +179,19 @@ const countries = [
 {n:"Islas Malvinas",c:"FK"},{n:"Antártida",c:"AQ"}
 ];
 
+// ===== CONFIGURACIÓN DE DIFICULTADES =====
+const DIFFICULTY_LIMITS = {
+    facil: 25,
+    normal: 50,
+    dificil: 100,
+    hardcore: countries.length
+};
+
 // ===== VARIABLES =====
 let active=[],remaining=[],score=0,answered=0,current=null;
 let lock=false;
 
+// ===== FUNCIONES =====
 function shuffle(a){
     for(let i=a.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));
@@ -194,9 +204,8 @@ function startGame(level){
     document.getElementById("difficulty-selection").style.display="none";
     document.getElementById("quiz").style.display="block";
 
-    if(level==="facil") active=countries.slice(0,50);
-    else if(level==="normal") active=countries.slice(0,100);
-    else active=[...countries];
+    const limit = DIFFICULTY_LIMITS[level];
+    active = countries.slice(0, limit);
 
     score=0;
     answered=0;
@@ -209,7 +218,7 @@ function nextFlag(){
     document.getElementById("message").textContent="";
 
     if(remaining.length===0){
-        document.getElementById("message").textContent=
+        document.getElementById("message").textContent =
         `🏁 Adivinaste ${score} de ${active.length} banderas`;
         setTimeout(()=>{
             document.getElementById("quiz").style.display="none";
@@ -218,13 +227,13 @@ function nextFlag(){
         return;
     }
 
-    current=remaining.pop();
-    document.getElementById("flag").src=
+    current = remaining.pop();
+    document.getElementById("flag").src =
         `https://flagcdn.com/w320/${current.c.toLowerCase()}.png`;
 
-    const wrong=shuffle(active.filter(c=>c!==current)).slice(0,3);
-    const opts=shuffle([current.n,...wrong.map(x=>x.n)]);
-    const div=document.getElementById("options");
+    const wrong = shuffle(active.filter(c=>c!==current)).slice(0,3);
+    const opts = shuffle([current.n, ...wrong.map(x=>x.n)]);
+    const div = document.getElementById("options");
     div.innerHTML="";
 
     opts.forEach(o=>{
@@ -258,7 +267,7 @@ function check(ans){
 }
 
 function updateScore(){
-    document.getElementById("score").textContent=
+    document.getElementById("score").textContent =
         `Puntaje: ${score} / ${answered}`;
 }
 </script>
