@@ -3,94 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <title>QUIZ DE BANDERAS</title>
+
 <style>
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-image: url("https://wallpapers.com/images/hd/high-resolution-3d-aerial-world-map-with-buildings-lf09gl6110je9e91.jpg");
-    background-size: cover;
-    background-position: center;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background-image:url("https://wallpapers.com/images/hd/high-resolution-3d-aerial-world-map-with-buildings-lf09gl6110je9e91.jpg");
+    background-size:cover;
+    background-position:center;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
 
-/* Contenedores */
-.quiz, #difficulty-selection {
-    background: rgba(255,255,255,0.95);
-    padding: 25px;
-    width: 380px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+.quiz,#difficulty-selection{
+    background:rgba(255,255,255,0.95);
+    width:380px;
+    max-height:90vh;
+    padding:18px;
+    border-radius:15px;
+    box-shadow:0 0 20px rgba(0,0,0,.5);
+    text-align:center;
+    display:flex;
+    flex-direction:column;
 }
 
-/* Imagen de bandera */
-img {
-    width: 260px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    margin: 15px 0;
+.flag-box{
+    width:100%;
+    height:160px;
+    margin:10px 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
 
-/* Botones generales */
-button {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    font-size: 17px;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    transition: all 0.2s;
-}
-button:hover {
-    transform: scale(1.05);
+.flag-box img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    border-radius:8px;
+    box-shadow:0 0 10px rgba(0,0,0,.3);
 }
 
-/* Botones de dificultad con colores distintos */
-.difficulty-btn.facil {
-    background-color: #ffc107;
-    color: white;
-}
-.difficulty-btn.facil:hover {
-    background-color: #ffc107;
+#options{flex-grow:1;}
+
+button{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
 }
 
-.difficulty-btn.normal {
-    background-color: #FF0000;
-    color: white;
-}
-.difficulty-btn.normal:hover {
-    background-color: #FF0000;
+button:hover{transform:scale(1.03);}
+
+.facil{background:#ffc107;color:white;}
+.normal{background:#ff0000;color:white;}
+.dificil{background:#800080;color:black;}
+
+.score{
+    font-size:16px;
+    font-weight:bold;
+    margin-top:6px;
 }
 
-.difficulty-btn.dificil {
-    background-color: #800080;
-    color: black;
-}
-.difficulty-btn.dificil:hover {
-    background-color: #800080;
-}
-
-/* Score y mensaje */
-.score {
-    font-size: 18px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-#message {
-    margin-top: 12px;
-    font-weight: bold;
-    min-height: 24px;
+#message{
+    margin-top:6px;
+    font-weight:bold;
+    min-height:22px;
 }
 </style>
 </head>
+
 <body>
 
-<!-- Menú de dificultad -->
+<!-- MENÚ -->
 <div id="difficulty-selection">
     <h2>SELECCIONA TU DIFICULTAD:</h2>
     <button class="difficulty-btn facil" onclick="startGame('facil')">😐 NORMAL (50 banderas) 😐</button>
@@ -98,17 +88,21 @@ button:hover {
     <button class="difficulty-btn dificil" onclick="startGame('dificil')">👿 HARDCORE (211 banderas) 👿</button>
 </div>
 
-<!-- Contenedor del juego -->
-<div class="quiz" id="quiz-container" style="display:none;">
-    <h2>SELECCIONA LA OPCIÓN CORRECTA:</h2>
-    <img id="flag" alt="Bandera">
+<!-- JUEGO -->
+<div class="quiz" id="quiz" style="display:none;">
+    <h2>¿DE QUÉ PAÍS ES LA BANDERA?</h2>
+
+    <div class="flag-box">
+        <img id="flag" alt="Bandera">
+    </div>
+
     <div id="options"></div>
     <div class="score" id="score"></div>
     <div id="message"></div>
 </div>
 
 <script>
-// --- LISTA COMPLETA DE PAÍSES Y TERRITORIOS ---
+// ===== LISTA DE PAÍSES (la tuya) =====
 const countries = [
 {n:"Afganistán",c:"AF"},{n:"Albania",c:"AL"},{n:"Argelia",c:"DZ"},
 {n:"Andorra",c:"AD"},{n:"Angola",c:"AO"},{n:"Antigua y Barbuda",c:"AG"},
@@ -184,50 +178,90 @@ const countries = [
 {n:"Islas Malvinas",c:"FK"},{n:"Antártida",c:"AQ"}
 ];
 
-// --- VARIABLES ---
-let remaining = [];
-let score = 0;
-let current = null;
-let activeCountries = [];
+// ===== VARIABLES =====
+let active=[],remaining=[],score=0,answered=0,current=null;
+let lock=false;
 
-// --- FUNCIONES ---
-function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function shuffle(a){
+    for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+}
 
 function startGame(level){
     document.getElementById("difficulty-selection").style.display="none";
-    document.getElementById("quiz-container").style.display="block";
-    if(level==="facil") activeCountries = countries.slice(0,50);
-    else if(level==="normal") activeCountries = countries.slice(0,100);
-    else activeCountries = countries.slice();
-    resetGame();
+    document.getElementById("quiz").style.display="block";
+
+    if(level==="facil") active=countries.slice(0,50);
+    else if(level==="normal") active=countries.slice(0,100);
+    else active=[...countries];
+
+    score=0;
+    answered=0;
+    remaining=shuffle([...active]);
+    nextFlag();
 }
 
 function nextFlag(){
+    lock=false;
+    document.getElementById("message").textContent="";
+
     if(remaining.length===0){
-        showMessage(`🏆 ¡Ganaste! Adivinaste las ${activeCountries.length} banderas`,"green");
-        setTimeout(resetGame,2500);
+        document.getElementById("message").textContent=
+        `🏁 Adivinaste ${score} de ${active.length} banderas`;
+        setTimeout(()=>{
+            document.getElementById("quiz").style.display="none";
+            document.getElementById("difficulty-selection").style.display="block";
+        },3000);
         return;
     }
+
     current=remaining.pop();
-    const img=document.getElementById("flag");
-    img.src=`https://flagcdn.com/w320/${current.c.toLowerCase()}.png`;
-    img.onerror=()=>img.src="https://via.placeholder.com/320x200?text=No+Disponible";
-    const wrong=shuffle(activeCountries.filter(c=>c!==current)).slice(0,3);
-    const options=shuffle([current.n,...wrong.map(c=>c.n)]);
-    const div=document.getElementById("options");div.innerHTML="";
-    options.forEach(o=>{const b=document.createElement("button");b.textContent=o;b.onclick=()=>check(o);div.appendChild(b);});
-    document.getElementById("score").textContent=`Puntaje: ${score} / ${activeCountries.length}`;
-    showMessage("", "");
+    document.getElementById("flag").src=
+        `https://flagcdn.com/w320/${current.c.toLowerCase()}.png`;
+
+    const wrong=shuffle(active.filter(c=>c!==current)).slice(0,3);
+    const opts=shuffle([current.n,...wrong.map(x=>x.n)]);
+    const div=document.getElementById("options");
+    div.innerHTML="";
+
+    opts.forEach(o=>{
+        const b=document.createElement("button");
+        b.textContent=o;
+        b.onclick=()=>check(o);
+        div.appendChild(b);
+    });
+
+    updateScore();
 }
 
-function check(ans){if(ans===current.n){score++;nextFlag();}else{showMessage(`❌ Incorrecto. Era: ${current.n}`,"red");setTimeout(resetGame,2000);}}
+function check(ans){
+    if(lock) return;
+    lock=true;
 
-function resetGame(){score=0;remaining=shuffle([...activeCountries]);nextFlag();}
+    answered++;
+    const msg=document.getElementById("message");
 
-function showMessage(text,color){const msg=document.getElementById("message");msg.textContent=text;msg.style.color=color;}
+    if(ans===current.n){
+        score++;
+        msg.textContent="✅ Correcto";
+        msg.style.color="green";
+    }else{
+        msg.textContent=`❌ Incorrecto. Era ${current.n}`;
+        msg.style.color="red";
+    }
+
+    updateScore();
+    setTimeout(nextFlag,900);
+}
+
+function updateScore(){
+    document.getElementById("score").textContent=
+        `Puntaje: ${score} / ${answered}`;
+}
 </script>
 
 </body>
 </html>
-
-
