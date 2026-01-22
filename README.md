@@ -63,7 +63,6 @@ button{
 }
 button:hover{transform:scale(1.03);}
 
-/* DIFICULTADES */
 .facil{background:#28a745;color:white;}
 .normal{background:#ffc107;color:white;}
 .dificil{background:#ff0000;color:white;}
@@ -84,16 +83,14 @@ button:hover{transform:scale(1.03);}
 
 <body>
 
-<!-- MENÚ -->
 <div id="difficulty-selection">
     <h2>SELECCIONA TU DIFICULTAD</h2>
-    <button class="facil" onclick="startGame('facil')">😄 FÁCIL (25 banderas) 😄</button>
-    <button class="normal" onclick="startGame('normal')">😐 NORMAL (50 banderas) 😐</button>
-    <button class="dificil" onclick="startGame('dificil')">😡 DIFÍCIL (100 banderas) 😡</button>
-    <button class="hardcore" onclick="startGame('hardcore')">👿 HARDCORE (211 banderas) 👿</button>
+    <button class="facil" onclick="startGame('facil')">😄 FÁCIL (25) 😄</button>
+    <button class="normal" onclick="startGame('normal')">😐 NORMAL (50) 😐</button>
+    <button class="dificil" onclick="startGame('dificil')">😡 DIFÍCIL (100) 😡</button>
+    <button class="hardcore" onclick="startGame('hardcore')">👿 HARDCORE (211) 👿</button>
 </div>
 
-<!-- JUEGO -->
 <div class="quiz" id="quiz" style="display:none;">
     <h2>¿DE QUÉ PAÍS ES LA BANDERA?</h2>
 
@@ -107,7 +104,7 @@ button:hover{transform:scale(1.03);}
 </div>
 
 <script>
-// ===== LISTA DE PAÍSES (puedes poner la completa aquí) =====
+/* ===== LISTA DE PAÍSES ===== */
 const countries = [
 {n:"Afganistán",c:"AF"},{n:"Albania",c:"AL"},{n:"Argelia",c:"DZ"},
 {n:"Andorra",c:"AD"},{n:"Angola",c:"AO"},{n:"Antigua y Barbuda",c:"AG"},
@@ -183,102 +180,145 @@ const countries = [
 {n:"Islas Malvinas",c:"FK"},{n:"Antártida",c:"AQ"}
 ];
 
-// ===== CONFIGURACIÓN DE DIFICULTADES =====
-const DIFFICULTY_LIMITS = {
-    facil: 25,
-    normal: 50,
-    dificil: 100,
-    hardcore: countries.length
+/* ===== POOLS ===== */
+const EASY = [
+"Estados Unidos","Brasil","México","España","Francia",
+"Italia","Alemania","Reino Unido","Argentina","China",
+"Japón","Canadá","Australia","Portugal","Perú",
+"Chile","Colombia","Uruguay","Ecuador","Venezuela",
+"Costa Rica","India","Rusia","Corea del Sur","Países Bajos"
+];
+
+const NORMAL = [
+...EASY,
+"Polonia","Suecia","Noruega","Finlandia","Suiza",
+"Bélgica","Austria","Grecia","Turquía","Egipto",
+"Marruecos","Sudáfrica","Tailandia","Indonesia","Filipinas",
+"Vietnam","Malasia","Nueva Zelanda","Irlanda","Escocia",
+"Dinamarca","República Checa","Hungría","Israel","Ucrania"
+];
+
+const DIFFICULT = [
+...NORMAL,
+"Bolivia","Paraguay","Guyana","Surinam",
+"Armenia","Georgia","Azerbaiyán","Kazajistán",
+"Uzbekistán","Turkmenistán","Kirguistán","Tayikistán",
+"Albania","Macedonia del Norte","Montenegro","Kosovo",
+"Laos","Camboya","Myanmar","Nepal","Sri Lanka",
+"Bangladés","Pakistán","Afganistán","Irán","Iraq",
+"Siria","Jordania","Líbano","Omán","Yemen",
+"Etiopía","Eritrea","Somalia","Sudán","Chad",
+"Níger","Malí","Burkina Faso","Benín","Togo",
+"Gabón","Camerún","Angola","Zambia","Zimbabue"
+];
+
+const HARDCORE = countries.map(c=>c.n);
+
+/* ===== CONFIG ===== */
+const DIFFICULTY_POOLS = {
+    facil:EASY,
+    normal:NORMAL,
+    dificil:DIFFICULT,
+    hardcore:HARDCORE
 };
 
-// ===== VARIABLES =====
-let active = [];
-let remaining = [];
-let score = 0;
-let answered = 0;
-let maxQuestions = 0;
-let current = null;
-let lock = false;
+const DIFFICULTY_LIMITS = {
+    facil:25,
+    normal:50,
+    dificil:100,
+    hardcore:countries.length
+};
 
-// ===== UTIL =====
-function shuffle(arr){
-    for(let i=arr.length-1;i>0;i--){
+/* ===== VARIABLES ===== */
+let active=[],remaining=[],score=0,answered=0,maxQuestions=0,current=null,lock=false;
+
+/* ===== UTIL ===== */
+function shuffle(a){
+    for(let i=a.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));
-        [arr[i],arr[j]]=[arr[j],arr[i]];
+        [a[i],a[j]]=[a[j],a[i]];
     }
-    return arr;
+    return a;
 }
 
-// ===== JUEGO =====
+/* ===== JUEGO ===== */
 function startGame(level){
     document.getElementById("difficulty-selection").style.display="none";
     document.getElementById("quiz").style.display="block";
 
-    maxQuestions = DIFFICULTY_LIMITS[level];
-    active = countries.slice(0, maxQuestions);
+    active = countries.filter(c =>
+        DIFFICULTY_POOLS[level].includes(c.n)
+    );
 
+    maxQuestions = Math.min(
+        DIFFICULTY_LIMITS[level],
+        active.length
+    );
+
+    remaining = shuffle([...active]);
     score = 0;
     answered = 0;
-    remaining = shuffle([...active]);
 
     nextFlag();
 }
 
 function nextFlag(){
-    lock = false;
-    document.getElementById("message").textContent = "";
+    lock=false;
+    document.getElementById("message").textContent="";
 
     if(answered >= maxQuestions){
-        document.getElementById("message").textContent =
-            `🏁 Adivinaste ${score} de ${maxQuestions} banderas`;
-        setTimeout(()=>{
-            document.getElementById("quiz").style.display="none";
-            document.getElementById("difficulty-selection").style.display="block";
-        },3000);
-        return;
-    }
+    document.getElementById("message").textContent =
+        `🏁 Adivinaste ${score} de ${maxQuestions} banderas 🏁`;
+
+    setTimeout(() => {
+        document.getElementById("quiz").style.display = "none";
+        document.getElementById("difficulty-selection").style.display = "block";
+    }, 3000); // 3 segundos para leer el resultado
+
+    return;
+}
 
     current = remaining.pop();
-    document.getElementById("flag").src =
+
+    document.getElementById("flag").src=
         `https://flagcdn.com/w320/${current.c.toLowerCase()}.png`;
 
     const wrong = shuffle(active.filter(c=>c!==current)).slice(0,3);
-    const options = shuffle([current.n, ...wrong.map(w=>w.n)]);
-    const div = document.getElementById("options");
-    div.innerHTML = "";
+    const options = shuffle([current.n,...wrong.map(w=>w.n)]);
+    const div=document.getElementById("options");
+    div.innerHTML="";
 
-    options.forEach(opt=>{
-        const b = document.createElement("button");
-        b.textContent = opt;
-        b.onclick = ()=>check(opt);
+    options.forEach(o=>{
+        const b=document.createElement("button");
+        b.textContent=o;
+        b.onclick=()=>check(o);
         div.appendChild(b);
     });
 
     updateScore();
 }
 
-function check(answer){
+function check(a){
     if(lock) return;
-    lock = true;
-
+    lock=true;
     answered++;
-    const msg = document.getElementById("message");
 
-    if(answer === current.n){
+    const msg=document.getElementById("message");
+    if(a===current.n){
         score++;
-        msg.textContent = "✅ Correcto";
-        msg.style.color = "green";
+        msg.textContent="✅ Correcto";
+        msg.style.color="green";
     }else{
-        msg.textContent = `❌ Incorrecto. Era ${current.n}`;
-        msg.style.color = "red";
+        msg.textContent=`❌ Incorrecto. Era ${current.n}`;
+        msg.style.color="red";
     }
 
     updateScore();
-    setTimeout(nextFlag, 900);
+    setTimeout(nextFlag,900);
 }
 
 function updateScore(){
-    document.getElementById("score").textContent =
+    document.getElementById("score").textContent=
         `Puntaje: ${score} / ${maxQuestions}`;
 }
 </script>
