@@ -1,0 +1,287 @@
+<!-- Hi! I’m a Peruvian secondary school student. -->
+<!-- I’d like to know what you think about my project, and I’d also like you to translate it into any language you prefer. -->
+<!-- No credits are required, because the code is made with ChatGPT. -->
+<!-- Here’s the last code: -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>QUIZ DE BANDERAS</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background-image:url("https://wallpapers.com/images/hd/high-resolution-3d-aerial-world-map-with-buildings-lf09gl6110je9e91.jpg");
+    background-size:cover;
+    background-position:center;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.quiz,#difficulty-selection{
+    background:rgba(255,255,255,0.95);
+    width:380px;
+    max-height:90vh;
+    padding:18px;
+    border-radius:15px;
+    box-shadow:0 0 20px rgba(0,0,0,.5);
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+}
+
+.flag-box{
+    width:100%;
+    height:160px;
+    margin:10px 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.flag-box img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    border-radius:8px;
+    box-shadow:0 0 10px rgba(0,0,0,.3);
+}
+
+#options{flex-grow:1;}
+
+button{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+button:hover{transform:scale(1.03);}
+
+/* DIFICULTADES */
+.facil{background:#28a745;color:white;}
+.normal{background:#ffc107;color:white;}
+.dificil{background:#ff0000;color:white;}
+.hardcore{background:#800080;color:black;}
+
+.score{
+    font-size:16px;
+    font-weight:bold;
+    margin-top:6px;
+}
+#message{
+    margin-top:6px;
+    font-weight:bold;
+    min-height:22px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MENÚ -->
+<div id="difficulty-selection">
+    <h2>SELECCIONA TU DIFICULTAD</h2>
+    <button class="facil" onclick="startGame('facil')">😄 FÁCIL (25 banderas) 😄</button>
+    <button class="normal" onclick="startGame('normal')">😐 NORMAL (50 banderas) 😐</button>
+    <button class="dificil" onclick="startGame('dificil')">😡 DIFÍCIL (100 banderas) 😡</button>
+    <button class="hardcore" onclick="startGame('hardcore')">👿 HARDCORE (211 banderas) 👿</button>
+</div>
+
+<!-- JUEGO -->
+<div class="quiz" id="quiz" style="display:none;">
+    <h2>¿DE QUÉ PAÍS ES LA BANDERA?</h2>
+
+    <div class="flag-box">
+        <img id="flag" alt="Bandera">
+    </div>
+
+    <div id="options"></div>
+    <div class="score" id="score"></div>
+    <div id="message"></div>
+</div>
+
+<script>
+// ===== LISTA DE PAÍSES (puedes poner la completa aquí) =====
+const countries = [
+{n:"Afganistán",c:"AF"},{n:"Albania",c:"AL"},{n:"Argelia",c:"DZ"},
+{n:"Andorra",c:"AD"},{n:"Angola",c:"AO"},{n:"Antigua y Barbuda",c:"AG"},
+{n:"Argentina",c:"AR"},{n:"Armenia",c:"AM"},{n:"Australia",c:"AU"},
+{n:"Austria",c:"AT"},{n:"Azerbaiyán",c:"AZ"},{n:"Bahamas",c:"BS"},
+{n:"Baréin",c:"BH"},{n:"Bangladés",c:"BD"},{n:"Barbados",c:"BB"},
+{n:"Bélgica",c:"BE"},{n:"Belice",c:"BZ"},{n:"Benín",c:"BJ"},
+{n:"Bután",c:"BT"},{n:"Bolivia",c:"BO"},{n:"Bosnia y Herzegovina",c:"BA"},
+{n:"Botsuana",c:"BW"},{n:"Brasil",c:"BR"},{n:"Brunéi",c:"BN"},
+{n:"Bulgaria",c:"BG"},{n:"Burkina Faso",c:"BF"},{n:"Burundi",c:"BI"},
+{n:"Camboya",c:"KH"},{n:"Camerún",c:"CM"},{n:"Canadá",c:"CA"},
+{n:"Cabo Verde",c:"CV"},{n:"Chad",c:"TD"},{n:"Chile",c:"CL"},
+{n:"China",c:"CN"},{n:"Colombia",c:"CO"},{n:"Comoras",c:"KM"},
+{n:"Congo",c:"CG"},{n:"Costa Rica",c:"CR"},{n:"Costa de Marfil",c:"CI"},
+{n:"Croacia",c:"HR"},{n:"Cuba",c:"CU"},{n:"Chipre",c:"CY"},
+{n:"Chequia",c:"CZ"},{n:"Dinamarca",c:"DK"},{n:"Yibuti",c:"DJ"},
+{n:"Dominica",c:"DM"},{n:"República Dominicana",c:"DO"},
+{n:"Ecuador",c:"EC"},{n:"Egipto",c:"EG"},{n:"El Salvador",c:"SV"},
+{n:"Guinea Ecuatorial",c:"GQ"},{n:"Eritrea",c:"ER"},
+{n:"Estonia",c:"EE"},{n:"Esuatini",c:"SZ"},{n:"Etiopía",c:"ET"},
+{n:"Fiyi",c:"FJ"},{n:"Finlandia",c:"FI"},{n:"Francia",c:"FR"},
+{n:"Gabón",c:"GA"},{n:"Gambia",c:"GM"},{n:"Georgia",c:"GE"},
+{n:"Alemania",c:"DE"},{n:"Ghana",c:"GH"},{n:"Grecia",c:"GR"},
+{n:"Granada",c:"GD"},{n:"Guatemala",c:"GT"},{n:"Guinea",c:"GN"},
+{n:"Guinea-Bisáu",c:"GW"},{n:"Guyana",c:"GY"},{n:"Haití",c:"HT"},
+{n:"Honduras",c:"HN"},{n:"Hungría",c:"HU"},{n:"Islandia",c:"IS"},
+{n:"India",c:"IN"},{n:"Indonesia",c:"ID"},{n:"Irán",c:"IR"},
+{n:"Irak",c:"IQ"},{n:"Irlanda",c:"IE"},{n:"Israel",c:"IL"},
+{n:"Italia",c:"IT"},{n:"Jamaica",c:"JM"},{n:"Japón",c:"JP"},
+{n:"Jordania",c:"JO"},{n:"Kazajistán",c:"KZ"},{n:"Kenia",c:"KE"},
+{n:"Kiribati",c:"KI"},{n:"Corea del Norte",c:"KP"},{n:"Corea del Sur",c:"KR"},
+{n:"Kuwait",c:"KW"},{n:"Kirguistán",c:"KG"},{n:"Laos",c:"LA"},
+{n:"Letonia",c:"LV"},{n:"Líbano",c:"LB"},{n:"Lesoto",c:"LS"},
+{n:"Liberia",c:"LR"},{n:"Libia",c:"LY"},{n:"Liechtenstein",c:"LI"},
+{n:"Lituania",c:"LT"},{n:"Luxemburgo",c:"LU"},{n:"Madagascar",c:"MG"},
+{n:"Malasia",c:"MY"},{n:"Maldivas",c:"MV"},{n:"Malí",c:"ML"},
+{n:"Malta",c:"MT"},{n:"Islas Marshall",c:"MH"},{n:"Mauritania",c:"MR"},
+{n:"Mauricio",c:"MU"},{n:"México",c:"MX"},{n:"Micronesia",c:"FM"},
+{n:"Moldavia",c:"MD"},{n:"Mónaco",c:"MC"},{n:"Mongolia",c:"MN"},
+{n:"Montenegro",c:"ME"},{n:"Marruecos",c:"MA"},{n:"Mozambique",c:"MZ"},
+{n:"Myanmar",c:"MM"},{n:"Namibia",c:"NA"},{n:"Nauru",c:"NR"},
+{n:"Nepal",c:"NP"},{n:"Países Bajos",c:"NL"},{n:"Nueva Zelanda",c:"NZ"},
+{n:"Nicaragua",c:"NI"},{n:"Níger",c:"NE"},{n:"Nigeria",c:"NG"},
+{n:"Macedonia del Norte",c:"MK"},{n:"Noruega",c:"NO"},{n:"Omán",c:"OM"},
+{n:"Pakistán",c:"PK"},{n:"Panamá",c:"PA"},{n:"Papúa Nueva Guinea",c:"PG"},
+{n:"Paraguay",c:"PY"},{n:"Perú",c:"PE"},{n:"Filipinas",c:"PH"},
+{n:"Polonia",c:"PL"},{n:"Portugal",c:"PT"},{n:"Qatar",c:"QA"},
+{n:"Rumania",c:"RO"},{n:"Rusia",c:"RU"},{n:"Ruanda",c:"RW"},
+{n:"Arabia Saudita",c:"SA"},{n:"Senegal",c:"SN"},{n:"Serbia",c:"RS"},
+{n:"Seychelles",c:"SC"},{n:"Sierra Leona",c:"SL"},{n:"Singapur",c:"SG"},
+{n:"Eslovaquia",c:"SK"},{n:"Eslovenia",c:"SI"},{n:"Islas Salomón",c:"SB"},
+{n:"Somalia",c:"SO"},{n:"Sudáfrica",c:"ZA"},{n:"Sudán",c:"SD"},
+{n:"Sudán del Sur",c:"SS"},{n:"España",c:"ES"},{n:"Sri Lanka",c:"LK"},
+{n:"Surinam",c:"SR"},{n:"Suecia",c:"SE"},{n:"Suiza",c:"CH"},
+{n:"Siria",c:"SY"},{n:"Tailandia",c:"TH"},{n:"Tanzania",c:"TZ"},
+{n:"Tayikistán",c:"TJ"},{n:"Timor Oriental",c:"TL"},{n:"Togo",c:"TG"},
+{n:"Tonga",c:"TO"},{n:"Trinidad y Tobago",c:"TT"},{n:"Túnez",c:"TN"},
+{n:"Turquía",c:"TR"},{n:"Turkmenistán",c:"TM"},{n:"Tuvalu",c:"TV"},
+{n:"Uganda",c:"UG"},{n:"Ucrania",c:"UA"},{n:"Emiratos Árabes Unidos",c:"AE"},
+{n:"Reino Unido",c:"GB"},{n:"Estados Unidos",c:"US"},{n:"Uruguay",c:"UY"},
+{n:"Uzbekistán",c:"UZ"},{n:"Vaticano",c:"VA"},{n:"Venezuela",c:"VE"},
+{n:"Vietnam",c:"VN"},{n:"Yemen",c:"YE"},{n:"Zambia",c:"ZM"},
+{n:"Zimbabue",c:"ZW"},{n:"Palestina",c:"PS"},{n:"Kosovo",c:"XK"},
+{n:"Taiwán",c:"TW"},{n:"Puerto Rico",c:"PR"},{n:"Hong Kong",c:"HK"},
+{n:"Macao",c:"MO"},{n:"Groenlandia",c:"GL"},{n:"Islas Feroe",c:"FO"},
+{n:"Guam",c:"GU"},{n:"Samoa Americana",c:"AS"},{n:"Islas Caimán",c:"KY"},
+{n:"Islas Vírgenes Británicas",c:"VG"},{n:"Islas Vírgenes de EE. UU.",c:"VI"},
+{n:"Bermudas",c:"BM"},{n:"Gibraltar",c:"GI"},{n:"Curazao",c:"CW"},
+{n:"Aruba",c:"AW"},{n:"Bonaire",c:"BQ"},{n:"San Martín",c:"MF"},
+{n:"San Bartolomé",c:"BL"},{n:"Martinica",c:"MQ"},{n:"Guadalupe",c:"GP"},
+{n:"Reunión",c:"RE"},{n:"Mayotte",c:"YT"},{n:"Nueva Caledonia",c:"NC"},
+{n:"Polinesia Francesa",c:"PF"},{n:"Wallis y Futuna",c:"WF"},
+{n:"Islas Malvinas",c:"FK"},{n:"Antártida",c:"AQ"}
+];
+
+// ===== CONFIGURACIÓN DE DIFICULTADES =====
+const DIFFICULTY_LIMITS = {
+    facil: 25,
+    normal: 50,
+    dificil: 100,
+    hardcore: countries.length
+};
+
+// ===== VARIABLES =====
+let active = [];
+let remaining = [];
+let score = 0;
+let answered = 0;
+let maxQuestions = 0;
+let current = null;
+let lock = false;
+
+// ===== UTIL =====
+function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+}
+
+// ===== JUEGO =====
+function startGame(level){
+    document.getElementById("difficulty-selection").style.display="none";
+    document.getElementById("quiz").style.display="block";
+
+    maxQuestions = DIFFICULTY_LIMITS[level];
+    active = countries.slice(0, maxQuestions);
+
+    score = 0;
+    answered = 0;
+    remaining = shuffle([...active]);
+
+    nextFlag();
+}
+
+function nextFlag(){
+    lock = false;
+    document.getElementById("message").textContent = "";
+
+    if(answered >= maxQuestions){
+        document.getElementById("message").textContent =
+            `🏁 Adivinaste ${score} de ${maxQuestions} banderas`;
+        setTimeout(()=>{
+            document.getElementById("quiz").style.display="none";
+            document.getElementById("difficulty-selection").style.display="block";
+        },3000);
+        return;
+    }
+
+    current = remaining.pop();
+    document.getElementById("flag").src =
+        `https://flagcdn.com/w320/${current.c.toLowerCase()}.png`;
+
+    const wrong = shuffle(active.filter(c=>c!==current)).slice(0,3);
+    const options = shuffle([current.n, ...wrong.map(w=>w.n)]);
+    const div = document.getElementById("options");
+    div.innerHTML = "";
+
+    options.forEach(opt=>{
+        const b = document.createElement("button");
+        b.textContent = opt;
+        b.onclick = ()=>check(opt);
+        div.appendChild(b);
+    });
+
+    updateScore();
+}
+
+function check(answer){
+    if(lock) return;
+    lock = true;
+
+    answered++;
+    const msg = document.getElementById("message");
+
+    if(answer === current.n){
+        score++;
+        msg.textContent = "✅ Correcto";
+        msg.style.color = "green";
+    }else{
+        msg.textContent = `❌ Incorrecto. Era ${current.n}`;
+        msg.style.color = "red";
+    }
+
+    updateScore();
+    setTimeout(nextFlag, 900);
+}
+
+function updateScore(){
+    document.getElementById("score").textContent =
+        `Puntaje: ${score} / ${maxQuestions}`;
+}
+</script>
+
+</body>
+</html>
