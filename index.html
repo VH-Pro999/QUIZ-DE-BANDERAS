@@ -61,7 +61,8 @@ button:hover{transform:scale(1.03);}
 .facil{background:#28a745;color:white;}
 .normal{background:#ffc107;color:white;}
 .dificil{background:#ff0000;color:white;}
-.hardcore{background:#800080;color:black;}
+.muy-dificil{background:#800080;color:white;} /* antes hardcore */
+.hardcore2{background:#000;color:red;} /* nuevo modo */
 
 .score{
     font-size:16px;
@@ -79,11 +80,12 @@ button:hover{transform:scale(1.03);}
 <body>
 
 <div id="difficulty-selection">
-    <h2>SELECCIONA TU DIFICULTAD</h2>
+    <h2>SELECCIONA TU DIFICULTAD:</h2>
     <button class="facil" onclick="startGame('facil')">😄 FÁCIL (25) 😄</button>
     <button class="normal" onclick="startGame('normal')">😐 NORMAL (50) 😐</button>
     <button class="dificil" onclick="startGame('dificil')">😡 DIFÍCIL (100) 😡</button>
-    <button class="hardcore" onclick="startGame('hardcore')">👿 HARDCORE (211) 👿</button>
+    <button class="muy-dificil" onclick="startGame('hardcore')">👿 MUY DIFÍCIL (211) 👿</button>
+    <button class="hardcore2" onclick="startGame('hardcore2')">💀 HARDCORE (???) 💀</button>
 </div>
 
 <div class="quiz" id="quiz" style="display:none;">
@@ -216,18 +218,20 @@ const DIFFICULTY_POOLS = {
     facil:EASY,
     normal:NORMAL,
     dificil:DIFFICULT,
-    hardcore:HARDCORE
+    hardcore:HARDCORE,
+    hardcore2:HARDCORE // mismo pool
 };
 
 const DIFFICULTY_LIMITS = {
     facil:25,
     normal:50,
     dificil:100,
-    hardcore:countries.length
+    hardcore:countries.length,
+    hardcore2:countries.length
 };
 
 /* ===== VARIABLES ===== */
-let active=[],remaining=[],score=0,answered=0,maxQuestions=0,current=null,lock=false;
+let active=[],remaining=[],score=0,answered=0,maxQuestions=0,current=null,lock=false,currentMode="";
 
 /* ===== UTIL ===== */
 function shuffle(a){
@@ -242,6 +246,8 @@ function shuffle(a){
 function startGame(level){
     document.getElementById("difficulty-selection").style.display="none";
     document.getElementById("quiz").style.display="block";
+
+    currentMode = level; // guardamos el modo actual
 
     active = countries.filter(c =>
         DIFFICULTY_POOLS[level].includes(c.n)
@@ -264,16 +270,16 @@ function nextFlag(){
     document.getElementById("message").textContent="";
 
     if(answered >= maxQuestions){
-    document.getElementById("message").textContent =
-        `🏁 Adivinaste ${score} de ${maxQuestions} banderas 🏁`;
+        document.getElementById("message").textContent =
+            `🏁 Adivinaste ${score} de ${maxQuestions} banderas 🏁`;
 
-    setTimeout(() => {
-        document.getElementById("quiz").style.display = "none";
-        document.getElementById("difficulty-selection").style.display = "block";
-    }, 3000); // 3 segundos para leer el resultado
+        setTimeout(() => {
+            document.getElementById("quiz").style.display = "none";
+            document.getElementById("difficulty-selection").style.display = "block";
+        }, 3000);
 
-    return;
-}
+        return;
+    }
 
     current = remaining.pop();
 
@@ -306,6 +312,15 @@ function check(a){
         msg.textContent="✅ Correcto";
         msg.style.color="green";
     }else{
+        if(currentMode==="hardcore2"){ // fallo en Hardcore 2
+            msg.textContent=`💀 Incorrecto. Suerte para la próxima 💀`;
+            msg.style.color="red";
+            setTimeout(()=>{
+                document.getElementById("quiz").style.display="none";
+                document.getElementById("difficulty-selection").style.display="block";
+            },1000);
+            return;
+        }
         msg.textContent=`❌ Incorrecto. Era ${current.n}`;
         msg.style.color="red";
     }
@@ -322,5 +337,3 @@ function updateScore(){
 
 </body>
 </html>
-
-
